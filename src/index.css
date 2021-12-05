@@ -1,34 +1,6 @@
-.card {
-    padding: 10px;
-    margin-top: 25px;
-}
-
-.center {
-    text-align: center;
-}
-
-.dropdown-toggle::after {
-    display: none !important;
-}
-
-.navbar-expand .navbar-nav .dropdown-menu {
-    margin-left: -6em !important;
-}
-
-/* Links - change color on hover */
-.topnav a:hover {
-  background-color: #ddd;
-  color: black;
-}
-
-p.outset {outline-style: outset;}
-
-.center {
-  margin: auto;
-  width: 50%;
-  padding: 10px;
-}
-
-div1 { 
-    display:none;
+canvas {
+	width: 100%;
+	height: auto;
+	outline: none;
+	border: none;
 }

@@ -1,11 +1,1 @@
-flask 
-flask_sqlalchemy
 gunicorn
-flask_cors
-flask-migrate
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
-Flask-SQLAlchemy
-flask-cors
-psycopg2
