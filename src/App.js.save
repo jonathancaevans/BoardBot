@@ -152,7 +152,7 @@ const App = () => {
 			const img = new Image()
 			img.src = "kilterboard.png"
 			await ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-			await ctx.drawImage(img, 0, 0);
+			ctx.drawImage(img, 0, 0);
 
 			visualdisplay.forEach(function (placement, index) {
 				vismap.forEach(function (axis, index) {
