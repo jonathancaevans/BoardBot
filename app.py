@@ -6,7 +6,7 @@ from flask import Flask, request, session, render_template, jsonify
 from flask_cors import CORS, cross_origin
 
 # serving the Flask Shell App using CORS
-app = Flask(__name__, static_folder="build/static", template_folder="build")
+app = Flask(__name__, static_url_path='', static_folder="build", template_folder="build")
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
