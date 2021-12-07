@@ -2,6 +2,9 @@ import React, {useRef, useEffect, useState} from 'react';
 import * as tf from "@tensorflow/tfjs"
 import './index.css';
 
+import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+
 function isRouteValid(visualdisplay){
   var holdTypesCount = {"mid":0,"feet":0,"start":0,"finish":0}
 
@@ -9,9 +12,9 @@ function isRouteValid(visualdisplay){
     holdTypesCount[placement[1]]++
   });
 
-  if (holdTypesCount["start"] == 0 || holdTypesCount["start"] > 2) {
+  if (holdTypesCount["start"] === 0 || holdTypesCount["start"] > 2) {
     return false;
-  } else if (holdTypesCount["finish"] == 0 || holdTypesCount["finish"] > 2) {
+  } else if (holdTypesCount["finish"] === 0 || holdTypesCount["finish"] > 2) {
     return false;
   } else if (holdTypesCount["finish"] + holdTypesCount["finish"] + holdTypesCount["finish"] + holdTypesCount["finish"] > 35) {
     return false;
@@ -63,13 +66,12 @@ const App = () => {
 	const canvasRef = React.useRef(null);
 	const kilterboard = React.useRef(null);
 	const [model, setModel] = useState(null);
-	const [routes, setRoute] = useState();
+	const [route, setRoute] = useState(null);
 
 
 	const loadModel = async() => {
 		const loadedModel = await tf.loadLayersModel('https://boardbot.s3.us-east-2.amazonaws.com/BoardBot/model.json');
 		setModel(loadedModel);
-		console.log('Model Loaded!');
 	}
 
 	useEffect(()=>{
@@ -129,11 +131,11 @@ const App = () => {
 					holdTypesCount[placement[1]]++
 				});
 
-				if (holdTypesCount["start"] == 0 || holdTypesCount["start"] > 2)
+				if (holdTypesCount["start"] === 0 || holdTypesCount["start"] > 2)
 				{
 					isRouteValid = false;
 				}
-				else if (holdTypesCount["finish"] == 0 || holdTypesCount["finish"] > 2)
+				else if (holdTypesCount["finish"] === 0 || holdTypesCount["finish"] > 2)
 				{
 					isRouteValid = false;
 				}
@@ -145,24 +147,22 @@ const App = () => {
 				{
 					isRouteValid = true;
 				}
-				console.log(isRouteValid);
 			}
 
 			const ctx = canvasRef.current.getContext('2d');
 			const img = new Image()
 			img.src = "kilterboard.png"
 			await ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-			await ctx.drawImage(img, 0, 0);
 
 			visualdisplay.forEach(function (placement, index) {
 				vismap.forEach(function (axis, index) {
-					if(placement[0] == axis[0]){
+					if(placement[0] === axis[0]){
 						ctx.beginPath();
-						if(placement[1] == "finish"){
+						if(placement[1] === "finish"){
 							ctx.strokeStyle = '#f003fc';
-						} else if (placement[1] == "start"){
+						} else if (placement[1] === "start"){
 							ctx.strokeStyle = '#03fc5e';
-						} else if (placement[1] == "mid"){
+						} else if (placement[1] === "mid"){
 							ctx.strokeStyle = '#03d3fc';
 						} else{
 							ctx.strokeStyle = '#fca103';
@@ -174,16 +174,54 @@ const App = () => {
 					}
 				});
 			});
+
+			await ctx.drawImage(img, 0, 0);
+
+			let placements = [];
+			visualdisplay.forEach(function (placement, index) {
+				let role_id = 15;
+				if(placement[1] === "finish"){
+					role_id = 14;
+				} else if (placement[1] === "start"){
+					role_id = 12;
+				} else if (placement[1] === "mid"){
+					role_id = 13;
+				}
+				let newPlacement = {'placement_id': placement[0], 'role_id': role_id, 'frame': 0};
+				placements.push(newPlacement);
+			});
+
+			await setRoute(placements);
+		}
+	}
+
+	const exportRoute = async(e) => {
+		if(model != null && route != null)
+		{
+			const res = await fetch('/export', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(route),
+			});
+			const body = await res.json();
+			let string = "Route exported, find it on the KilterBoard app by searching for " + body["Success"]
+			toast.success(string);
 		}
 	}
 
 	return(
 	<div class = "Container">
+		<ToastContainer position="top-right" autoClose={10000} closeOnClick={false} draggable={false} pauseOnHover/>
 		<div class="d-flex flex-column min-vh-100 justify-content-center align-items-center">
 			<div class="card my-auto mx-auto">
 				<canvas class="card-img-top" id="canvas" ref={canvasRef}></canvas>
 				<div class="card-body text-center">
-					<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
+					<div class="btn-group" role="group">
+						<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
+						<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
+					</div>
 				</div>
 			</div>
 		</div>
