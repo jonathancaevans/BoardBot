@@ -150,9 +150,14 @@ const App = () => {
 			}
 
 			const ctx = canvasRef.current.getContext('2d');
+
+			await ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
 			const img = new Image()
 			img.src = "kilterboard.png"
-			await ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+			img.onload = function() {
+				ctx.drawImage(img, 0, 0);
+			}
 
 			visualdisplay.forEach(function (placement, index) {
 				vismap.forEach(function (axis, index) {
@@ -174,8 +179,6 @@ const App = () => {
 					}
 				});
 			});
-
-			await ctx.drawImage(img, 0, 0);
 
 			let placements = [];
 			visualdisplay.forEach(function (placement, index) {
