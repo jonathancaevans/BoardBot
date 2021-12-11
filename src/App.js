@@ -1,9 +1,12 @@
-import React, {useRef, useEffect, useState} from 'react';
+import React, {useRef, useEffect, useState, Fragment} from 'react';
 import * as tf from "@tensorflow/tfjs"
 import './index.css';
 
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from "react-toastify";
+
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import Loader from "react-loader-spinner";
 
 function isRouteValid(visualdisplay){
   var holdTypesCount = {"mid":0,"feet":0,"start":0,"finish":0}
@@ -151,10 +154,11 @@ const App = () => {
 
 			const ctx = canvasRef.current.getContext('2d');
 
-			await ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
 			const img = new Image()
 			img.src = "kilterboard.png"
+
+			ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
 			img.onload = function() {
 				ctx.drawImage(img, 0, 0);
 			}
@@ -221,10 +225,19 @@ const App = () => {
 			<div class="card my-auto mx-auto">
 				<canvas class="card-img-top" id="canvas" ref={canvasRef}></canvas>
 				<div class="card-body text-center">
-					<div class="btn-group" role="group">
-						<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
-						<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
-					</div>
+					{model == null ?
+						<div>
+							<div>Model Loading</div>
+							<Loader type="Puff" color="#00BFFF" height={100} width={100}/>
+						</div>
+					:
+					<React.Fragment>
+						<div class="btn-group" role="group">
+							<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
+							<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
+						</div>
+					</React.Fragment>
+					}
 				</div>
 			</div>
 		</div>
