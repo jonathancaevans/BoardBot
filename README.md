@@ -1,19 +1,11 @@
-### --- Deployment ---
+### --- Live Version ---
 The web application is deployed on a Heroku site:
 
-https://graduatealready2.herokuapp.com/
-
-https://graduatealreadyprojerct.herokuapp.com/
-
-# Kanban Board
-https://github.com/users/Keegan652/projects/1
+http://www.boardgan.com/
 
 # BoardBot
 
-A node.js module to interface with a boardbot, running on Python Flask and served with React.
-
-The Kilter board is a modern take on a traditional training wall. Each hold has been scrutinized for comfort and grip style, allowing one to train on open hand holds, incuts, pinches, crimps and slopers. The LED light system will light up the holds that lay out the problem before you. The layout of these holds is standardized across the globe, allowing climbers to set and climb uniform problems no matter where they are on the planet! 
-
+BoardGAN is a deep convolutional generative adversarial network that generates routes on climbing training boards. It has a live web version where model inference can be run via Flask, React, and Tensorflow.js. Generated routes are automatically pushed to their corresponding IOS/Android apps for climbers to use for training. It currently supports and is trained on the 12x12 kilterboard. Upcoming features include a conditional model that supports difficulty and climbing angle adjustment, word embedding into latent space for descriptive natural language processed routes, and support for different board configurations and brands.
 
 ### --- Before Starting --- 
    
@@ -60,10 +52,3 @@ $ python app.py (for Linux Users)
 Then on another terminal, node can be run using:
 
 $ npm start
-
-
-### --- Program Execution ---
-
-The program uses Google OAuth Sign In to login into the system. A "Sign In with Google" option shows up to prompt the user to sign in to the site.
-After selecting the account, the user data is saved in a local database and displayed and the top right of the navbar.
-The program then proceeds to the main section of the web app.
