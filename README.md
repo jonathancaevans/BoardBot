@@ -3,7 +3,7 @@ The web application is deployed on a Heroku site:
 
 http://www.boardgan.com/
 
-# BoardBot
+# BoardGAN
 
 BoardGAN is a deep convolutional generative adversarial network that generates routes on climbing training boards. It has a live web version where model inference can be run via Flask, React, and Tensorflow.js. Generated routes are automatically pushed to their corresponding IOS/Android apps for climbers to use for training. It currently supports and is trained on the 12x12 kilterboard. Upcoming features include a conditional model that supports difficulty and climbing angle adjustment, word embedding into latent space for descriptive natural language processed routes, and support for different board configurations and brands.
 

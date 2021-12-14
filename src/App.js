@@ -168,18 +168,18 @@ const App = () => {
 					if(placement[0] === axis[0]){
 						ctx.beginPath();
 						if(placement[1] === "finish"){
-							ctx.strokeStyle = '#f003fc';
+							ctx.fillStyle = '#f003fc';
 						} else if (placement[1] === "start"){
-							ctx.strokeStyle = '#03fc5e';
+							ctx.fillStyle = '#03fc5e';
 						} else if (placement[1] === "mid"){
-							ctx.strokeStyle = '#03d3fc';
+							ctx.fillStyle = '#03d3fc';
 						} else{
-							ctx.strokeStyle = '#fca103';
+							ctx.fillStyle = '#fca103';
 						}
 
 						ctx.arc(axis[1], axis[2], axis[3]/2, 0, 2 * Math.PI);
 						ctx.lineWidth = 3;
-						ctx.stroke();
+						ctx.fill();
 					}
 				});
 			});
@@ -222,22 +222,43 @@ const App = () => {
 	<div class = "Container">
 		<ToastContainer position="top-right" autoClose={10000} closeOnClick={false} draggable={false} pauseOnHover/>
 		<div class="d-flex flex-column min-vh-100 justify-content-center align-items-center">
-			<div class="card my-auto mx-auto">
-				<canvas class="card-img-top" id="canvas" ref={canvasRef}></canvas>
-				<div class="card-body text-center">
-					{model == null ?
-						<div>
-							<div>Model Loading</div>
-							<Loader type="Puff" color="#00BFFF" height={100} width={100}/>
+			<div class="row row-cols-1 row-cols-md-2 g-4">
+				<div class="col">
+					<div class="card my-auto mx-auto">
+						<canvas class="card-img-top" id="canvas" ref={canvasRef}></canvas>
+						<div class="card-body text-center">
+							{model == null ?
+								<div>
+									<div>Model Loading</div>
+									<Loader type="Puff" color="#00BFFF" height={100} width={100}/>
+								</div>
+							:
+							<React.Fragment>
+								<div class="btn-group" role="group">
+									<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
+									<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
+								</div>
+							</React.Fragment>
+							}
 						</div>
-					:
-					<React.Fragment>
-						<div class="btn-group" role="group">
-							<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
-							<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
+					</div>
+				</div>
+				<div class="col">
+					<div class="card">
+						<div class="card-body">
+							<h3 class="card-title">
+								<a class="navbar-brand">
+									<img src="BoardGANlogo.svg" width="70" height="70" alt=""></img>
+								</a>
+							BoardGAN</h3>
+							<p class="card-text">BoardGAN is a deep convolutional generative adversarial network that generates routes on climbing training boards. Generated routes are automatically pushed to their corresponding IOS/Android apps for climbers to use for training. It currently supports and is trained on the 12x12 kilterboard. Upcoming features include a conditional model that supports difficulty and climbing angle adjustment, word embedding into latent space for descriptive natural language processed routes, and support for different board configurations and brands.</p>
 						</div>
-					</React.Fragment>
-					}
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">
+                <iframe src="https://www.youtube.com/embed/nk6U0c3YM9g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              </li>
+            </ul>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -4,3 +4,8 @@ canvas {
 	outline: none;
 	border: none;
 }
+
+iframe {
+	width: 100%;
+	height: 70vh;
+}
