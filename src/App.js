@@ -71,10 +71,18 @@ const App = () => {
 	const [model, setModel] = useState(null);
 	const [route, setRoute] = useState(null);
 
+	const [grader, setGrader] = useState(null);
+  const [searchRoute, setSearchRoute] = useState(null);
+  const [angle, setAngle] = useState(null);
+  const [grade, setGrade] = useState(['na','na']);
+  const [loading, setLoading] = useState(false);
 
 	const loadModel = async() => {
 		const loadedModel = await tf.loadLayersModel('https://boardbot.s3.us-east-2.amazonaws.com/BoardBot/model.json');
 		setModel(loadedModel);
+
+		const loadedGrader = await tf.loadLayersModel('https://boardbotclassifier.s3.us-east-2.amazonaws.com/model.json');
+		setGrader(loadedGrader)
 	}
 
 	useEffect(()=>{
@@ -218,6 +226,78 @@ const App = () => {
 		}
 	}
 
+  function handleNameChange(e) {
+    setSearchRoute(e.target.value);
+  }
+
+  function handleAngleChange(e) {
+    setAngle(e.target.value);
+  }
+
+  const gradeClimb = async(e) => {
+
+
+    if(!Number.isInteger(parseInt(angle)))
+    {
+      toast.warn("Only integer values accepted for angles");
+    }
+    else if(searchRoute != null && angle != null)
+    {
+      setLoading(true)
+
+      const name = {"name":searchRoute};
+      const res = await fetch('/gradeClimb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(name)
+      });
+
+      let holds = []
+      let pointer = 0;
+      const body = await res.json();
+      for(let i = 0; i < 36; i++)
+      {
+        let x = []
+        for(let j = 0; j < 18; j++)
+        {
+          let value = [-1,-1,-1,-1]
+          for(let pointer = 0; pointer < body.length; pointer++)
+          {
+            if(idmap[i][j] === body[pointer]['placement_id'])
+            {
+              if(body[pointer]['placement_id']['role_id'] === 13)
+              {
+                value[0] = 1
+              }
+              else if(body[pointer]['placement_id']['role_id'] === 15)
+              {
+                value[1] = 1
+              }
+              else if(body[pointer]['placement_id']['role_id'] === 12)
+              {
+                value[2] = 1
+              }
+              else
+              {
+                value[3] = 1
+              }
+            }
+          }
+          x.push(value)
+        }
+        holds.push(x)
+      }
+
+      const gradeLabels = [['4a','V0'],['4b','V0'],['4c','V0'],['5a','V1'],['5b','V1'],['5c','V2'],['6a','V3'],['6a+','V3'],['6b','V4'],['6b+','V4'],['6c','V5'],['6c+','V5'],['7a','V6'],['7a+','V7'],['7b','V8'],['7b+','V8'],['7c','V9'],['7c+','V10'],['8a','V11'],['8a+','V12'],['8b','V13'],['8b+','V14'],['8c','V15'],['8c+','V16']];
+
+      let grade = await grader.predict([tf.tensor([holds]),tf.tensor([((angle/5)/14)])]);
+      setLoading(false);
+      setGrade(gradeLabels[Math.round(grade.dataSync()[0]*23)])
+    }
+  }
+
 	return(
 	<div class = "Container">
 		<ToastContainer position="top-right" autoClose={10000} closeOnClick={false} draggable={false} pauseOnHover/>
@@ -260,6 +340,41 @@ const App = () => {
             </ul>
 					</div>
 				</div>
+        <div class="col">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title">AutoGrader</h5>
+            </div>
+            <div class="card-body">
+              {grader == null ?
+                <div>
+                  <div>Model Loading</div>
+                  <Loader type="Puff" color="#00BFFF" height={100} width={100}/>
+                </div>
+              :
+              <React.Fragment>
+                <div class="input-group mb-3">
+                  <input type="text" class="form-control" placeholder="Name of the route (Input exactly as show on KilterBoard app)" onChange={handleNameChange}/>
+                  <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon1">@</span>
+                  </div>
+                    <input type="text" class="form-control" placeholder="Angle (in degrees)" onChange={handleAngleChange}/>
+                  <div class="input-group-append">
+                    <button type="button" class="btn btn-warning" disabled={loading} onClick={gradeClimb}>Grade Climb</button>
+                  </div>
+                </div>
+              </React.Fragment>
+              }
+              <h1><span class="badge bg-primary">
+                Grade: {loading ?
+                  <span class="badge placeholder-glow"><span class="placeholder col-6"></span></span>
+                  :
+                  <span class="badge bg-secondary">{grade[1]}/{grade[0]}</span>
+                }
+              </span></h1>
+            </div>
+          </div>
+        </div>
 			</div>
 		</div>
 	</div>
