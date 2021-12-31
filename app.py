@@ -53,6 +53,20 @@ def export():
 
     return jsonify({"Success": name})
 
+@app.route("/gradeClimb", methods=["POST"])
+def gradeClimb():
+    name = request.json.get("name")
+
+    sync = {"client":{"enforces_product_passwords":1,"enforces_layout_passwords":1,"manages_power_responsibly":1},"GET":{"query":{"include_multiframe_climbs":0,"include_all_beta_links":1,"tables":["climbs"],"syncs":{"shared_syncs":[{"table_name":"climbs","last_synchronized_at":"2018-3-27 15:45:25.021411"}]}}}}
+    r = requests.post('https://api.kilterboardapp.com/v1/sync', json=sync)
+
+    for climb in r.json()['PUT']['climbs']:
+        if climb['name'] == name:
+            return jsonify(climb['placements'])
+
+    emptylist = []
+    return jsonify(emptylist)
+
 # app main
 if __name__ == '__main__':
     app.run(debug=True)
