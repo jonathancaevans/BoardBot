@@ -6,6 +6,8 @@ import requests
 from flask import Flask, request, session, render_template, jsonify
 from flask_cors import CORS, cross_origin
 
+words = ['abseiling', 'add-on', 'aid', 'alpine', 'anchor', 'arete', 'arm', 'ascend', 'atc', 'back-clipping', 'back-step', 'barn-door', 'belay', 'beta', 'bicycle', 'biner', 'bolt', 'bomb', 'bomb-proof', 'bouldering', 'bridging', 'bump', 'buildering', 'cam', 'campus', 'camming', 'chalk', 'cheese', 'chicken', 'head', 'wing', 'chimney', 'chipping', 'choss', 'clean', 'gym', 'shoe', 'climbing', 'contact', 'strength', 'cordelette', 'corner', 'crag', 'crank', 'crimp', 'crux', 'cut-loose', 'dab', 'dead', 'deck', 'dihedral', 'dirtbag', 'downclimb', 'drive-by', 'deadpoint', 'dry', 'fire', 'dynamic', 'dyno', 'edge', 'egyptian', 'eliminate', 'elvis', 'epic', 'exposure', 'extreme', 'face', 'feature', 'figure', 'four', 'jam', 'finger', 'board', 'first', 'ascensionist', 'fa', 'fist', 'flagging', 'inside', 'outside', 'flake', 'slab', 'rock', 'flapper', 'flash', 'solo', 'free', 'gaston', 'greenpoint', 'grigri', 'gumby', 'hangdog', 'headpoint', 'heel', 'hook', 'highball', 'hold', 'horn', 'jamming', 'jib', 'jug', 'jumar', 'laybacking', 'angle', 'mantle', 'match', 'mono', 'pitch', 'off-width', 'on-sight', 'pinch', 'polish', 'positive', 'problem', 'project', 'pumped', 'punter', 'psyched', 'quickdraw', 'rack', 'rappel', 'redpoint', 'roof', 'rose', 'runout', 'sandbag', 'screw on', 'send', 'sit', 'start', 'sloper', 'smearing', 'static', 'steep', 'technical', 'tension', 'toe', 'hook', 'top', 'training', 'traverse', 'tufa', 'volume', 'wired', 'zone']
+
 # serving the Flask Shell App using CORS
 app = Flask(__name__, static_url_path='', static_folder="build", template_folder="build")
 cors = CORS(app)
@@ -38,7 +40,7 @@ def export():
         uuid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(32))
         layout_id=1
         setter_id = 108522
-        name = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+	name = ''.join([str(word) + ' ' for word in random.choices(words, k = 3)]).strip()
         description = ''
         is_draft = False
         frames_count = 1
