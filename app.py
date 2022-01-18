@@ -40,7 +40,7 @@ def export():
         uuid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(32))
         layout_id=1
         setter_id = 108522
-	name = ''.join([str(word) + ' ' for word in random.choices(words, k = 3)]).strip()
+        name = ''.join([str(word) + ' ' for word in random.choices(words, k = 3)]).strip()
         description = ''
         is_draft = False
         frames_count = 1
