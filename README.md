@@ -5,7 +5,7 @@ http://www.boardgan.com/
 
 # BoardGAN
 
-BoardGAN is a deep convolutional generative adversarial network that generates routes on climbing training boards. It has a live web version where model inference can be run via Flask, React, and Tensorflow.js. Generated routes are automatically pushed to their corresponding IOS/Android apps for climbers to use for training. It currently supports and is trained on the 12x12 kilterboard. Upcoming features include a conditional model that supports difficulty and climbing angle adjustment, word embedding into latent space for descriptive natural language processed routes, and support for different board configurations and brands.
+BoardGAN is a deep convolutional generative adversarial network that generates novel climbing routes for climbing training boards. BoardGAN is the first use case of a GAN for human interactive spatial data represented in an image like format. It has a live web version where model inference can be run via Flask, React, and Tensorflow.js. Generated routes are automatically pushed to their corresponding IOS/Android apps for climbers to use for training. It currently supports and is trained on the 12x12 kilterboard. The website is built on React and flask and features integration with the Kilterboard app which supports a live climbing experience with BoardGAN's output. Upcoming features include a conditional model that supports difficulty and climbing angle adjustment, word embedding into latent space for descriptive natural language processed routes, and support for different board configurations and brands.
 
 ### --- Before Starting --- 
    
