@@ -119,7 +119,7 @@ const App = () => {
 	const canvasRef = React.useRef(null);
 	const kilterboard = React.useRef(null);
 	const [model, setModel] = useState(null);
-	const [route, setRoute] = useState(null);
+	const [route, setRoute] = useState({'placements':null, 'gradeIndex': null, 'gradeLabel': ['na','na'], 'angle': null});
 
 	const [grader, setGrader] = useState(null);
 	const [searchRoute, setSearchRoute] = useState(null);
@@ -277,7 +277,7 @@ const App = () => {
 	}
 
 	const exportRoute = async(e) => {
-		if(model != null && route != null)
+		if(model != null && route['placements'] != null)
 		{
 			const res = await fetch('/export', {
 				method: 'POST',
@@ -322,6 +322,9 @@ const App = () => {
 							<React.Fragment>
 								<div class="input-group mb-3">
 									<input type="text" class="form-control" placeholder="Angle (in degrees)" onChange={handleAngleGANChange}/>
+									<span class="input-group-text" id="basic-addon1">{route['gradeLabel'][1]}/{route['gradeLabel'][0]}</span>
+								</div>
+								<div class="input-group mb-3">
 									<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
 									<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
 								</div>
