@@ -8,57 +8,107 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import Loader from "react-loader-spinner";
 
-function isRouteValid(visualdisplay){
-  var holdTypesCount = {"mid":0,"feet":0,"start":0,"finish":0}
+function gradeNorm(grader, holds, angle)
+{
+	const gradeLabels = [['4a','V0'],['4b','V0'],['4c','V0'],['5a','V1'],['5b','V1'],['5c','V2'],['6a','V3'],['6a+','V3'],['6b','V4'],['6b+','V4'],['6c','V5'],['6c+','V5'],['7a','V6'],['7a+','V7'],['7b','V8'],['7b+','V8'],['7c','V9'],['7c+','V10'],['8a','V11'],['8a+','V12'],['8b','V13'],['8b+','V14'],['8c','V15'],['8c+','V16']];
 
-  visualdisplay.forEach(function (placement, index) {
-    holdTypesCount[placement[1]]++
-  });
+	let grade = grader.predict([tf.tensor([holds]),tf.tensor([((angle/5)/14)])]);
 
-  if (holdTypesCount["start"] === 0 || holdTypesCount["start"] > 2) {
-    return false;
-  } else if (holdTypesCount["finish"] === 0 || holdTypesCount["finish"] > 2) {
-    return false;
-  } else if (holdTypesCount["finish"] + holdTypesCount["finish"] + holdTypesCount["finish"] + holdTypesCount["finish"] > 35) {
-    return false;
-  } else {
-    return true;
-  }
+	return {"gradeLabel":gradeLabels[Math.round(grade.dataSync()[0]*23)],"gradeIndex":Math.round(grade.dataSync()[0]*23)+10};
 }
 
-function runInference(model, idmap){
-    const input = tf.randomNormal([1, 100]);
-    const output = model.predict(input);
-    const result = output.arraySync()[0]
-    var visualdisplay = []
+function visToPlacements(visualdisplay)
+{
+	let placements = [];
 
-    for(let i = 0; i < 36; i++)
-    {
-        for(let j = 0; j < 18; j++)
-        {
-	    if(result[i][j][3] > 0)
-	    {
-		let list = [idmap[i][j], "finish"]
-		visualdisplay.push(list)
-            }
-	    else if(result[i][j][2] > 0)
-	    {
-		let list = [idmap[i][j], "start"]
-		visualdisplay.push(list)
-            }
-	    else if(result[i][j][0] > 0)
-	    {
-		let list = [idmap[i][j], "mid"]
-		visualdisplay.push(list)
-            }
-	    else if(result[i][j][1] > 0)
-	    {
-		let list = [idmap[i][j], "feet"]
-		visualdisplay.push(list)
-            }
+	visualdisplay.forEach(function (placement, index) {
+		let role_id = 15;
+		if(placement[1] === "finish"){
+			role_id = 14;
+		} else if (placement[1] === "start"){
+			role_id = 12;
+		} else if (placement[1] === "mid"){
+			role_id = 13;
+		}
+		let newPlacement = {'placement_id': placement[0], 'role_id': role_id, 'frame': 0};
+		placements.push(newPlacement);
+	});
+
+	return placements;
+}
+
+function placementsToNorm(body, idmap)
+{
+	let holds = []
+	let pointer = 0;
+
+	for(let i = 0; i < 36; i++)
+	{
+		let x = []
+		for(let j = 0; j < 18; j++)
+		{
+			let value = [-1,-1,-1,-1]
+			for(let pointer = 0; pointer < body.length; pointer++)
+			{
+				if(idmap[i][j] === body[pointer]['placement_id'])
+				{
+					if(body[pointer]['placement_id']['role_id'] === 13)
+					{
+						value[0] = 1
+					}
+					else if(body[pointer]['placement_id']['role_id'] === 15)
+					{
+						value[1] = 1
+					}
+					else if(body[pointer]['placement_id']['role_id'] === 12)
+					{
+						value[2] = 1
+					}
+					else
+					{
+						value[3] = 1
+					}
+				}
+			}
+			x.push(value)
+		}
+		holds.push(x)
 	}
-    }
-    return visualdisplay
+
+	return holds;
+}
+
+function normToVis(norm, idmap)
+{
+	var visualdisplay = []
+
+	for(let i = 0; i < 36; i++)
+	{
+		for(let j = 0; j < 18; j++)
+		{
+			if(norm[i][j][3] > 0)
+			{
+				let list = [idmap[i][j], "finish"]
+				visualdisplay.push(list)
+			}
+			else if(norm[i][j][2] > 0)
+			{
+				let list = [idmap[i][j], "start"]
+				visualdisplay.push(list)
+			}
+			else if(norm[i][j][0] > 0)
+			{
+				let list = [idmap[i][j], "mid"]
+				visualdisplay.push(list)
+			}
+			else if(norm[i][j][1] > 0)
+			{
+				let list = [idmap[i][j], "feet"]
+				visualdisplay.push(list)
+			}
+		}
+	}
+	return visualdisplay
 }
 
 const App = () => {
@@ -72,10 +122,11 @@ const App = () => {
 	const [route, setRoute] = useState(null);
 
 	const [grader, setGrader] = useState(null);
-  const [searchRoute, setSearchRoute] = useState(null);
-  const [angle, setAngle] = useState(null);
-  const [grade, setGrade] = useState(['na','na']);
-  const [loading, setLoading] = useState(false);
+	const [searchRoute, setSearchRoute] = useState(null);
+	const [angleGrader, setAngleGrader] = useState(null);
+	const [angleGAN, setAngleGAN] = useState(null);
+	const [grade, setGrade] = useState(['na','na']);
+	const [loading, setLoading] = useState(false);
 
 	const loadModel = async() => {
 		const loadedModel = await tf.loadLayersModel('https://boardbot.s3.us-east-2.amazonaws.com/BoardBot/model.json');
@@ -98,43 +149,41 @@ const App = () => {
 	},[])
 
 	const generateRoute = async(e) => {
-		if(model != null)
+		if(angleGAN === null || angleGAN === '')
 		{
+			toast.warn("You must give an angle to generate a route");
+		}
+		else if(!Number.isInteger(parseInt(angleGAN)))
+		{
+			toast.warn("Only integer values accepted for angles");
+		}
+                else if(angleGAN < 0)
+                {
+                        toast.warn("Angle must be greater than or equal to 0");
+                }
+                else if(angleGAN > 70)
+                {
+                        toast.warn("Angle must be less than or equal to 70");
+                }
+                else if(angleGAN % 5 != 0)
+                {
+                        toast.warn("Angle must be evenly divisible by 5");
+                }
+		else if(model != null)
+		{
+			var visualdisplay = []
+
 			let isRouteValid = false;
+
 			while(!isRouteValid)
 			{
 				let input = tf.randomNormal([1, 100]);
 				let route = await model.predict(input);
-				let result = route.arraySync()[0]
-				isRouteValid = true;
-				var visualdisplay = []
+				var result = route.arraySync()[0];
 
-				for(let i = 0; i < 36; i++)
-				{
-					for(let j = 0; j < 18; j++)
-					{
-						if(result[i][j][3] > 0)
-						{
-							let list = [idmap[i][j], "finish"]
-							visualdisplay.push(list)
-						}
-						else if(result[i][j][2] > 0)
-						{
-							let list = [idmap[i][j], "start"]
-							visualdisplay.push(list)
-						}
-						else if(result[i][j][0] > 0)
-						{
-							let list = [idmap[i][j], "mid"]
-							visualdisplay.push(list)
-						}
-						else if(result[i][j][1] > 0)
-						{
-							let list = [idmap[i][j], "feet"]
-							visualdisplay.push(list)
-						}
-					}
-				}
+				isRouteValid = true;
+
+				var visualdisplay = normToVis(result, idmap);
 
 				var holdTypesCount = {"mid":0,"feet":0,"start":0,"finish":0}
 
@@ -192,21 +241,38 @@ const App = () => {
 				});
 			});
 
-			let placements = [];
-			visualdisplay.forEach(function (placement, index) {
-				let role_id = 15;
-				if(placement[1] === "finish"){
-					role_id = 14;
-				} else if (placement[1] === "start"){
-					role_id = 12;
-				} else if (placement[1] === "mid"){
-					role_id = 13;
-				}
-				let newPlacement = {'placement_id': placement[0], 'role_id': role_id, 'frame': 0};
-				placements.push(newPlacement);
+			var placements = await visToPlacements(visualdisplay);
+
+			var routeGrade = gradeNorm(grader, result, angleGAN)
+			await setRoute({'placements':placements, 'gradeIndex': routeGrade['gradeIndex'], 'gradeLabel': routeGrade['gradeLabel'], 'angle': angleGAN});
+		}
+	}
+
+	const gradeClimb = async(e) => {
+		if(!Number.isInteger(parseInt(angleGrader)))
+		{
+			toast.warn("Only integer values accepted for angles");
+		}
+		else if(searchRoute != null && angleGrader != null)
+		{
+			setLoading(true)
+
+			const name = {"name":searchRoute};
+			const res = await fetch('/gradeClimb', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(name)
 			});
 
-			await setRoute(placements);
+			const body = await res.json();
+
+			var holds = placementsToNorm(body, idmap)
+
+			var grade = gradeNorm(grader, holds, angleGrader);
+			setLoading(false);
+			setGrade(grade["gradeLabel"])
 		}
 	}
 
@@ -218,7 +284,7 @@ const App = () => {
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify(route),
+				body: JSON.stringify({'placements': route['placements'], 'gradeIndex': route['gradeIndex'], 'gradeLabel': route['gradeLabel'][0] + '/' + route['gradeLabel'][1], 'angle': route['angle']}),
 			});
 			const body = await res.json();
 			let string = "Route exported, find it on the KilterBoard app by searching for " + body["Success"]
@@ -226,77 +292,17 @@ const App = () => {
 		}
 	}
 
-  function handleNameChange(e) {
-    setSearchRoute(e.target.value);
-  }
+	function handleNameChange(e) {
+		setSearchRoute(e.target.value);
+	}
 
-  function handleAngleChange(e) {
-    setAngle(e.target.value);
-  }
+	function handleAngleGraderChange(e) {
+		setAngleGrader(e.target.value);
+	}
 
-  const gradeClimb = async(e) => {
-
-
-    if(!Number.isInteger(parseInt(angle)))
-    {
-      toast.warn("Only integer values accepted for angles");
-    }
-    else if(searchRoute != null && angle != null)
-    {
-      setLoading(true)
-
-      const name = {"name":searchRoute};
-      const res = await fetch('/gradeClimb', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(name)
-      });
-
-      let holds = []
-      let pointer = 0;
-      const body = await res.json();
-      for(let i = 0; i < 36; i++)
-      {
-        let x = []
-        for(let j = 0; j < 18; j++)
-        {
-          let value = [-1,-1,-1,-1]
-          for(let pointer = 0; pointer < body.length; pointer++)
-          {
-            if(idmap[i][j] === body[pointer]['placement_id'])
-            {
-              if(body[pointer]['placement_id']['role_id'] === 13)
-              {
-                value[0] = 1
-              }
-              else if(body[pointer]['placement_id']['role_id'] === 15)
-              {
-                value[1] = 1
-              }
-              else if(body[pointer]['placement_id']['role_id'] === 12)
-              {
-                value[2] = 1
-              }
-              else
-              {
-                value[3] = 1
-              }
-            }
-          }
-          x.push(value)
-        }
-        holds.push(x)
-      }
-
-      const gradeLabels = [['4a','V0'],['4b','V0'],['4c','V0'],['5a','V1'],['5b','V1'],['5c','V2'],['6a','V3'],['6a+','V3'],['6b','V4'],['6b+','V4'],['6c','V5'],['6c+','V5'],['7a','V6'],['7a+','V7'],['7b','V8'],['7b+','V8'],['7c','V9'],['7c+','V10'],['8a','V11'],['8a+','V12'],['8b','V13'],['8b+','V14'],['8c','V15'],['8c+','V16']];
-
-      let grade = await grader.predict([tf.tensor([holds]),tf.tensor([((angle/5)/14)])]);
-      setLoading(false);
-      setGrade(gradeLabels[Math.round(grade.dataSync()[0]*23)])
-    }
-  }
+	function handleAngleGANChange(e) {
+		setAngleGAN(e.target.value);
+	}
 
 	return(
 	<div class = "Container">
@@ -314,7 +320,8 @@ const App = () => {
 								</div>
 							:
 							<React.Fragment>
-								<div class="btn-group" role="group">
+								<div class="input-group mb-3">
+									<input type="text" class="form-control" placeholder="Angle (in degrees)" onChange={handleAngleGANChange}/>
 									<button type="button" class="btn btn-success" onClick={generateRoute}>Generate Route</button>
 									<button type="button" class="btn btn-warning" onClick={exportRoute}>Send Route to App</button>
 								</div>
@@ -358,7 +365,7 @@ const App = () => {
                   <div class="input-group-append">
                     <span class="input-group-text" id="basic-addon1">@</span>
                   </div>
-                    <input type="text" class="form-control" placeholder="Angle (in degrees)" onChange={handleAngleChange}/>
+                    <input type="text" class="form-control" placeholder="Angle (in degrees)" onChange={handleAngleGraderChange}/>
                   <div class="input-group-append">
                     <button type="button" class="btn btn-warning" disabled={loading} onClick={gradeClimb}>Grade Climb</button>
                   </div>
