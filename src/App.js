@@ -224,18 +224,25 @@ const App = () => {
 				vismap.forEach(function (axis, index) {
 					if(placement[0] === axis[0]){
 						ctx.beginPath();
+
+						var color = ''
+
 						if(placement[1] === "finish"){
-							ctx.fillStyle = '#f003fc';
+							color = '#f003fc';
 						} else if (placement[1] === "start"){
-							ctx.fillStyle = '#03fc5e';
+							color = '#03fc5e';
 						} else if (placement[1] === "mid"){
-							ctx.fillStyle = '#03d3fc';
+							color = '#03d3fc';
 						} else{
-							ctx.fillStyle = '#fca103';
+							color = '#fca103';
 						}
 
-						ctx.arc(axis[1], axis[2], axis[3]/2, 0, 2 * Math.PI);
-						ctx.lineWidth = 3;
+						var gradient = ctx.createRadialGradient(axis[1], axis[2], axis[3]/3, axis[1], axis[2], axis[3]/1.5);
+						gradient.addColorStop(0, color);
+						gradient.addColorStop(1, 'white');
+
+						ctx.arc(axis[1], axis[2], axis[3]/1.5, 0, 2 * Math.PI);
+						ctx.fillStyle = gradient;
 						ctx.fill();
 					}
 				});
